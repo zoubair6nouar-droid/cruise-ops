@@ -1,0 +1,1139 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root{
+  --bg:#12162A;
+  --bg-elev:#1B2040;
+  --bg-elev-2:#242A52;
+  --text:#EDE9DC;
+  --text-dim:#9BA0C4;
+  --brass:#CC9C43;
+  --brass-dim:#8A6E37;
+  --blue:#6273F7;
+  --blue-dim:#3A4390;
+  --border:#2E3563;
+  --danger:#C1594A;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;-webkit-font-smoothing:antialiased;}
+body.view-only .admin-only{display:none !important;}
+.app{max-width:1180px;margin:0 auto;padding:28px 24px 80px;}
+
+.header{position:relative;padding:28px 28px 26px;border-radius:16px;background:linear-gradient(135deg,#1B2040,#171B38);border:1px solid var(--border);overflow:hidden;margin-bottom:22px;}
+.motif{position:absolute;top:0;right:0;width:220px;height:220px;opacity:.16;pointer-events:none;}
+.header h1{font-family:'Fraunces',serif;font-weight:600;font-size:28px;margin:0 0 4px;letter-spacing:.2px;}
+.header .sub{color:var(--text-dim);font-size:13.5px;margin:0;}
+.header-row{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;position:relative;z-index:1;}
+.status{font-size:12px;color:var(--brass);display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--brass);}
+.header-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+
+.city-row{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 18px;position:relative;z-index:1;}
+.chip{padding:7px 14px;border-radius:999px;background:var(--bg-elev-2);border:1px solid var(--border);color:var(--text-dim);font-size:13px;cursor:pointer;font-weight:600;transition:.15s;}
+.chip:hover{border-color:var(--brass-dim);color:var(--text);}
+.chip.active{background:var(--brass);border-color:var(--brass);color:#1B1503;}
+.chip.add{border-style:dashed;color:var(--brass);}
+
+.tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border);}
+.tab{padding:10px 18px;font-weight:700;font-size:14px;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;}
+.tab.active{color:var(--text);border-color:var(--blue);}
+
+.toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+input,select,textarea{background:var(--bg-elev);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-family:'Manrope',sans-serif;font-size:13.5px;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);}
+.search{flex:1;min-width:180px;}
+.btn{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;}
+.btn:hover{background:#7385FF;}
+.btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text);}
+.btn.ghost:hover{border-color:var(--blue);}
+.btn.small{padding:6px 11px;font-size:12px;}
+.btn.danger{background:transparent;border:1px solid var(--danger);color:var(--danger);}
+.btn.danger:hover{background:var(--danger);color:#fff;}
+.btn.brass{background:var(--brass);color:#1B1503;}
+.btn.brass:hover{background:#E0B159;}
+
+.grid{display:grid;gap:12px;}
+
+.stats-bar{display:flex;gap:22px;margin-bottom:20px;padding:14px 18px;background:var(--bg-elev);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;}
+.stat{font-size:12.5px;color:var(--text-dim);}
+.stat b{font-family:'Fraunces',serif;font-size:19px;color:var(--text);display:block;font-weight:600;}
+
+.op-card{padding:0;overflow:hidden;}
+.op-header{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;cursor:pointer;}
+.op-header:hover{background:var(--bg-elev-2);}
+.chevron{color:var(--text-dim);font-size:11px;}
+.op-body{padding:4px 14px 14px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--border);}
+.op-body .card{background:var(--bg-elev-2);}
+.date-group{margin-bottom:26px;}
+.date-group-header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.date-group-header h2{font-family:'Fraunces',serif;font-size:16.5px;font-weight:600;margin:0;color:var(--brass);}
+.date-group-meta{font-size:12px;color:var(--text-dim);display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.card{background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+.card h3{margin:0 0 2px;font-family:'Fraunces',serif;font-size:17px;font-weight:600;}
+.meta{color:var(--text-dim);font-size:12.5px;display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;}
+.meta span{display:flex;align-items:center;gap:5px;}
+.tag{display:inline-block;background:var(--bg-elev-2);border:1px solid var(--border);color:var(--brass);border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:700;}
+.tag.dim{color:var(--text-dim);}
+.venue-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.vchip{background:var(--blue-dim);color:#D6DBFF;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;line-height:1.3;}
+.vchip:hover{background:var(--blue);color:#fff;}
+.vchip small{opacity:.85;font-weight:500;}
+.card-actions{display:flex;gap:8px;margin-top:12px;}
+.date-badge{background:var(--bg-elev-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;text-align:center;min-width:52px;}
+.date-badge .d{font-family:'Fraunces',serif;font-size:18px;font-weight:700;line-height:1;}
+.date-badge .m{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;}
+
+.empty{text-align:center;padding:60px 20px;color:var(--text-dim);}
+.empty h3{font-family:'Fraunces',serif;color:var(--text);font-weight:600;}
+
+.overlay{position:fixed;inset:0;background:rgba(10,12,26,.7);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;}
+.modal{background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;padding:26px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;}
+.modal h2{font-family:'Fraunces',serif;margin:0 0 18px;font-size:20px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.field input,.field select,.field textarea{width:100%;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+.hint{color:var(--text-dim);font-size:12px;margin-top:4px;}
+.loading{text-align:center;padding:60px;color:var(--text-dim);}
+
+.visits-box{border:1px solid var(--border);border-radius:8px;padding:10px;}
+.visit-row{display:grid;grid-template-columns:1.5fr .8fr 1fr .6fr auto;gap:6px;margin-bottom:6px;align-items:center;}
+.visit-row input,.visit-row select{font-size:12.5px;padding:7px 8px;}
+.visit-notes{grid-column:1/-1;margin-top:-2px;margin-bottom:8px;}
+.visit-notes input{width:100%;font-size:12px;padding:6px 8px;}
+
+.import-summary{background:var(--bg-elev-2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-top:6px;font-size:13.5px;line-height:1.7;}
+.import-summary b{color:var(--brass);}
+</style>
+
+<div class="app" id="app">
+  <div class="header">
+    <svg class="motif" viewBox="0 0 220 220"><g fill="none" stroke="#CC9C43" stroke-width="1.4">
+      <path d="M110 10 L150 60 L110 110 L70 60 Z"/><path d="M110 110 L150 160 L110 210 L70 160 Z"/>
+      <path d="M10 110 L60 70 L110 110 L60 150 Z"/><path d="M110 110 L160 70 L210 110 L160 150 Z"/>
+      <circle cx="110" cy="110" r="14"/></g></svg>
+    <div class="header-row">
+      <div>
+        <h1>Cruise Ops Board</h1>
+        <p class="sub">Cities, tours &amp; venues — linked in one place.</p>
+      </div>
+      <div class="header-actions">
+        <div class="status" id="status"><span class="dot"></span> loading…</div>
+        <button class="btn brass small admin-only" id="importBtn">⇪ Import Excel</button>
+        <button class="btn ghost small admin-only" id="importShipsBtn">🚢 Import Ship Names</button>
+        <button class="btn ghost small" id="downloadBackupBtn">⬇ Download backup</button>
+        <button class="btn ghost small admin-only" id="dedupeBtn">🧹 Remove duplicates</button>
+        <button class="btn ghost small admin-only" id="clearAllBtn">🗑 Clear all data</button>
+        <button class="btn ghost small" id="backendBtn">⚙ Backend</button>
+        <input type="file" id="importFile" accept=".xlsx,.xls,.csv,.json" style="display:none"/>
+        <input type="file" id="shipNamesFile" accept=".xlsx,.xls" style="display:none"/>
+      </div>
+    </div>
+    <div class="city-row" id="cityRow"></div>
+    <div class="city-row" id="lineRow"></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="tours">Tours</div>
+    <div class="tab" data-tab="venues">Venues</div>
+  </div>
+
+  <div class="toolbar">
+    <input class="search" id="searchInput" placeholder="Search…"/>
+    <select id="sortSelect">
+      <option value="date_asc">Sort: Date · soonest first</option>
+      <option value="date_desc">Sort: Date · latest first</option>
+      <option value="city">Group: By city</option>
+      <option value="ship">Group: By ship</option>
+    </select>
+    <button class="btn admin-only" id="addBtn">+ New</button>
+  </div>
+
+  <div id="content" class="grid"></div>
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+(function(){
+  const DEFAULT_CITIES = ["Casablanca","Marrakech","Tangier","Agadir"];
+
+  let cities = [], venues = [], tours = [];
+  let activeCity = "All";
+  let activeLine = "All";
+  let activeTab = "tours";
+  let searchTerm = "";
+  let loaded = false;
+  let modalVisits = [];
+  let sortMode = "date_asc";
+  let expandedOps = new Set();
+
+  const el = id => document.getElementById(id);
+  const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+
+  // ---------- Backend (Google Apps Script Web App) ----------
+  const BACKEND_KEY = 'cruise_ops_backend_url';
+  const ADMIN_KEY_STORAGE = 'cruise_ops_admin_key';
+  let syncTier = 'unknown'; // 'synced' | 'local' | 'failed' | 'unconfigured'
+
+  function getBackendUrl(){ return localStorage.getItem(BACKEND_KEY) || ''; }
+  function setBackendUrl(url){ localStorage.setItem(BACKEND_KEY, url.trim()); }
+  function getAdminKey(){ return localStorage.getItem(ADMIN_KEY_STORAGE) || ''; }
+  function setAdminKey(key){ localStorage.setItem(ADMIN_KEY_STORAGE, key.trim()); }
+  function isAdmin(){ return !!getAdminKey(); }
+
+  function updateStatusUI(){
+    const adminBadge = isAdmin() ? '' : ' · <span style="color:var(--text-dim)">view only</span>';
+    if(syncTier==='unconfigured'){
+      el('status').innerHTML = '<span class="dot" style="background:#E0B159"></span> not connected — click ⚙ Backend';
+    } else if(syncTier==='local'){
+      el('status').innerHTML = '<span class="dot" style="background:#E0B159"></span> offline — showing last synced copy'+adminBadge;
+    } else if(syncTier==='failed'){
+      el('status').innerHTML = '<span class="dot" style="background:#C1594A"></span> sync failed — see Download backup'+adminBadge;
+    } else {
+      el('status').innerHTML = '<span class="dot"></span> synced'+(isAdmin()? ' — shared with your team' : '')+adminBadge;
+    }
+  }
+
+  async function fetchAll(){
+    const url = getBackendUrl();
+    if(!url) throw new Error('no backend configured');
+    const res = await fetch(url, { method:'GET' });
+    if(!res.ok) throw new Error('backend returned '+res.status);
+    return await res.json();
+  }
+
+  // Full-replace sync: sends the entire current state, Apps Script overwrites the sheet.
+  async function pushAll(attempt){
+    attempt = attempt || 1;
+    if(!isAdmin()) return 'failed'; // view-only devices never write, even if a UI path is somehow triggered
+    const url = getBackendUrl();
+    if(!url) return 'failed';
+    const payload = { cities, venues, tours, adminKey: getAdminKey() };
+    try{
+      const res = await fetch(url, { method:'POST', body: JSON.stringify(payload) });
+      const json = await res.json();
+      if(json && json.ok) return 'synced';
+      if(json && json.error==='unauthorized') return 'unauthorized';
+      throw new Error('backend reported failure');
+    }catch(e){
+      console.error('push failed, attempt', attempt, e);
+      if(attempt < 3){
+        await new Promise(r=> setTimeout(r, attempt*700));
+        return pushAll(attempt+1);
+      }
+      // local cache fallback so nothing already-imported is lost
+      try{ localStorage.setItem('cruise_ops_local_cache', JSON.stringify(payload)); return 'local'; }
+      catch(e2){ return 'failed'; }
+    }
+  }
+
+  async function loadAll(){
+    if(!getBackendUrl()){
+      syncTier = 'unconfigured';
+      loaded = true;
+      updateStatusUI();
+      openBackendSettings(true);
+      render();
+      return;
+    }
+    try{
+      const data = await fetchAll();
+      cities = (data.cities && data.cities.length) ? data.cities : DEFAULT_CITIES.slice();
+      venues = data.venues || [];
+      tours = data.tours || [];
+      syncTier = 'synced';
+      loaded = true;
+      updateStatusUI();
+      render();
+    }catch(e){
+      console.error('load failed', e);
+      const cached = localStorage.getItem('cruise_ops_local_cache');
+      if(cached){
+        const data = JSON.parse(cached);
+        cities = data.cities || DEFAULT_CITIES.slice();
+        venues = data.venues || [];
+        tours = data.tours || [];
+        syncTier = 'local';
+      } else {
+        cities = DEFAULT_CITIES.slice(); venues = []; tours = [];
+        syncTier = 'failed';
+      }
+      loaded = true;
+      updateStatusUI();
+      render();
+    }
+  }
+
+  async function syncNow(){
+    const tier = await pushAll();
+    syncTier = tier;
+    updateStatusUI();
+    return tier;
+  }
+
+  function openBackendSettings(firstRun){
+    const current = getBackendUrl();
+    const currentKey = getAdminKey();
+    el('modalRoot').innerHTML = `<div class="overlay" id="ov">
+      <div class="modal" style="max-width:480px;">
+        <h2>${firstRun? "Connect to your team's Google Sheet" : 'Backend settings'}</h2>
+        <div class="import-summary" style="margin-bottom:14px;">
+          Paste the Apps Script Web App URL for your shared Google Sheet. Everyone on the team pastes the same URL, once, on their own device.
+        </div>
+        <div class="field"><label>Web App URL</label><input id="backendUrlInput" placeholder="https://script.google.com/macros/s/.../exec" value="${current}"/></div>
+        <div class="field">
+          <label>Admin Key (optional)</label>
+          <input id="adminKeyInput" placeholder="Leave blank for view-only access" value="${currentKey}"/>
+          <div class="hint">Only enter this on your own device if you should be able to edit data. Team members should leave this blank — they'll get a view-only copy of the app automatically.</div>
+        </div>
+        <div class="modal-actions">
+          ${firstRun? '' : '<button class="btn ghost" id="cancelBackend">Cancel</button>'}
+          <button class="btn" id="saveBackendBtn">Connect</button>
+        </div>
+      </div>
+    </div>`;
+    if(!firstRun) el('cancelBackend').onclick = closeModal;
+    el('ov').onclick = (e)=>{ if(e.target.id==='ov' && !firstRun) closeModal(); };
+    el('saveBackendBtn').onclick = async ()=>{
+      const url = el('backendUrlInput').value.trim();
+      if(!url){ alert('Please paste the Web App URL.'); return; }
+      setBackendUrl(url);
+      setAdminKey(el('adminKeyInput').value.trim());
+      el('saveBackendBtn').textContent = 'Connecting…';
+      el('saveBackendBtn').disabled = true;
+      closeModal();
+      await loadAll();
+    };
+  }
+
+  function renderCityChips(){
+    const row = el('cityRow');
+    let html = `<div class="chip ${activeCity==='All'?'active':''}" data-city="All">All cities</div>`;
+    cities.forEach(c=>{ html += `<div class="chip ${activeCity===c?'active':''}" data-city="${c}">${c}</div>`; });
+    html += `<div class="chip add admin-only" id="addCityChip">+ Add city</div>`;
+    row.innerHTML = html;
+    row.querySelectorAll('.chip[data-city]').forEach(chip=>{ chip.onclick = ()=>{ activeCity = chip.dataset.city; render(); }; });
+    el('addCityChip').onclick = ()=>{
+      const name = prompt("New city name:");
+      if(name && name.trim() && !cities.includes(name.trim())){ cities.push(name.trim()); syncNow(); render(); }
+    };
+  }
+
+  function renderLineChips(){
+    const row = el('lineRow');
+    const lines = Array.from(new Set(tours.map(t=>t.line).filter(Boolean))).sort();
+    if(activeTab!=='tours' || lines.length===0){ row.style.display='none'; row.innerHTML=''; return; }
+    row.style.display = 'flex';
+    let html = `<div class="chip ${activeLine==='All'?'active':''}" data-line="All">All cruise lines</div>`;
+    lines.forEach(l=>{ html += `<div class="chip ${activeLine===l?'active':''}" data-line="${l}">${l}</div>`; });
+    row.innerHTML = html;
+    row.querySelectorAll('.chip[data-line]').forEach(chip=>{ chip.onclick = ()=>{ activeLine = chip.dataset.line; render(); }; });
+  }
+
+  function isoToDMY(iso){
+    if(!iso) return '';
+    const dt = new Date(iso+'T00:00:00');
+    if(isNaN(dt.getTime())) return '';
+    return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()}`;
+  }
+  function dmyToISO(dmy){
+    const m = (dmy||'').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if(!m) return null;
+    const d = parseInt(m[1],10), mo = parseInt(m[2],10), y = parseInt(m[3],10);
+    if(d<1||d>31||mo<1||mo>12) return null;
+    return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+
+  function fmtDate(iso){
+    if(!iso) return {d:'--',m:''};
+    const dt = new Date(iso+'T00:00:00');
+    if(isNaN(dt.getTime())) return {d:'--',m:''};
+    return { d: String(dt.getDate()).padStart(2,'0'), m: String(dt.getMonth()+1).padStart(2,'0') };
+  }
+
+  function fmtDateHeader(iso){
+    if(!iso) return 'No date set';
+    const dmy = isoToDMY(iso);
+    return dmy || iso;
+  }
+
+  function renderTourCard(t){
+    const visits = t.visits||[];
+    const date = fmtDate(t.date);
+    return `<div class="card">
+        <div class="card-top">
+          <div style="display:flex;gap:14px;">
+            <div class="date-badge"><div class="d">${date.d}</div><div class="m">${date.m}</div></div>
+            <div>
+              <h3>${t.name||'Untitled tour'}</h3>
+              <div class="meta">
+                <span class="tag">${t.city||'—'}</span>
+                ${t.code?`<span class="tag dim">${t.code}</span>`:''}
+                <span>🚢 ${t.ship||'—'}</span>
+                ${t.line?`<span class="tag dim">${t.line}</span>`:''}
+                ${t.pax?`<span>👥 ${t.pax} pax</span>`:''}
+                ${t.timing?`<span>🕒 ${t.timing}</span>`:''}
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn ghost small admin-only" data-edit-tour="${t.id}">Edit</button>
+            <button class="btn danger small admin-only" data-del-tour="${t.id}">Delete</button>
+          </div>
+        </div>
+        ${visits.length?`<div class="venue-chips">${visits.map(vv=>{
+          const venue = venues.find(v=>v.id===vv.venueId);
+          if(!venue) return '';
+          const label = [venue.name, vv.activity, vv.time].filter(Boolean).join(' · ');
+          return `<span class="vchip" data-goto-venue="${venue.id}">${label}</span>`;
+        }).join('')}</div>`:''}
+        ${t.notes?`<div class="hint" style="margin-top:8px;">${t.notes}</div>`:''}
+      </div>`;
+  }
+
+  function buildOperations(list){
+    const map = {};
+    list.forEach(t=>{
+      const key = (t.date||'—')+'|'+(t.city||'—');
+      if(!map[key]) map[key] = { key, date:t.date, city:t.city, tours:[] };
+      map[key].tours.push(t);
+    });
+    // Pick the most common non-blank ship/line per operation, so a few tours
+    // with an unmatched ship name don't fragment or blank out the group.
+    Object.values(map).forEach(op=>{
+      const shipCounts = {}, lineCounts = {};
+      op.tours.forEach(t=>{
+        if(t.ship) shipCounts[t.ship] = (shipCounts[t.ship]||0)+1;
+        if(t.line) lineCounts[t.line] = (lineCounts[t.line]||0)+1;
+      });
+      const pickTop = counts => Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+      const topShip = pickTop(shipCounts);
+      const topLine = pickTop(lineCounts);
+      op.ship = topShip ? topShip[0] : '';
+      op.line = topLine ? topLine[0] : '';
+    });
+    return Object.values(map);
+  }
+
+  function renderOperationCard(op){
+    const expanded = expandedOps.has(op.key);
+    const venueSet = new Set();
+    op.tours.forEach(t=> (t.visits||[]).forEach(vv=> venueSet.add(vv.venueId)));
+    const totalPax = Math.max(0, ...op.tours.map(t=>t.pax||0));
+    return `<div class="card op-card">
+      <div class="op-header" data-toggle-op="${op.key}">
+        <div style="display:flex;gap:14px;align-items:center;">
+          <div class="date-badge"><div class="d">${fmtDate(op.date).d}</div><div class="m">${fmtDate(op.date).m}</div></div>
+          <div>
+            <h3>${op.ship||'Ship not set'}</h3>
+            <div class="meta">
+              <span class="tag">${op.city||'—'}</span>
+              ${op.line?`<span class="tag dim">${op.line}</span>`:''}
+              <span>🛳 ${op.tours.length} excursion${op.tours.length>1?'s':''}</span>
+              <span>📍 ${venueSet.size} venue${venueSet.size!==1?'s':''}</span>
+              ${totalPax?`<span>👥 up to ${totalPax} pax</span>`:''}
+            </div>
+          </div>
+        </div>
+        <span class="chevron">${expanded?'▲':'▼'}</span>
+      </div>
+      ${expanded?`<div class="op-body">${op.tours.sort((a,b)=>(a.timing||'').localeCompare(b.timing||'')).map(renderTourCard).join('')}</div>`:''}
+    </div>`;
+  }
+
+  function renderTours(){
+    let list = tours.filter(t=>{
+      if(activeCity!=='All' && t.city!==activeCity) return false;
+      if(activeLine!=='All' && t.line!==activeLine) return false;
+      if(searchTerm && !(`${t.name} ${t.ship} ${t.code||''}`.toLowerCase().includes(searchTerm))) return false;
+      return true;
+    });
+
+    if(list.length===0){
+      return `<div class="empty"><h3>No tours yet</h3><p>Add a tour${activeCity!=='All'?' in '+activeCity:''}, or import your spreadsheet.</p></div>`;
+    }
+
+    const operations = buildOperations(list);
+    const dateSet = new Set(list.map(t=>t.date).filter(Boolean));
+    const citySet = new Set(list.map(t=>t.city).filter(Boolean));
+    const sortedDatesForNext = Array.from(dateSet).sort();
+
+    const statsHtml = `<div class="stats-bar">
+      <div class="stat"><b>${operations.length}</b>operations</div>
+      <div class="stat"><b>${list.length}</b>excursions</div>
+      <div class="stat"><b>${citySet.size}</b>cities</div>
+      <div class="stat"><b>${sortedDatesForNext.length? fmtDate(sortedDatesForNext[0]).d+' '+fmtDate(sortedDatesForNext[0]).m : '—'}</b>next date</div>
+    </div>`;
+
+    let groupKeyFn, headerFn, keySort, withinGroupSort;
+    if(sortMode==='city'){
+      groupKeyFn = op=> op.city||'—';
+      headerFn = k=> k;
+      keySort = (a,b)=> a.localeCompare(b);
+      withinGroupSort = (a,b)=> (a.date||'').localeCompare(b.date||'');
+    } else if(sortMode==='ship'){
+      groupKeyFn = op=> op.ship||'Ship not set';
+      headerFn = k=> k;
+      keySort = (a,b)=> a.localeCompare(b);
+      withinGroupSort = (a,b)=> (a.date||'').localeCompare(b.date||'');
+    } else {
+      groupKeyFn = op=> op.date||'No date';
+      headerFn = k=> fmtDateHeader(k);
+      keySort = sortMode==='date_desc' ? (a,b)=> b.localeCompare(a) : (a,b)=> a.localeCompare(b);
+      withinGroupSort = (a,b)=> (a.ship||'').localeCompare(b.ship||'');
+    }
+
+    const groups = {};
+    operations.forEach(op=>{ const k=groupKeyFn(op); (groups[k]=groups[k]||[]).push(op); });
+    const orderedKeys = Object.keys(groups).sort(keySort);
+
+    const groupsHtml = orderedKeys.map(k=>{
+      const items = groups[k].sort(withinGroupSort);
+      const cityCounts = {};
+      items.forEach(op=>{ cityCounts[op.city||'—']=(cityCounts[op.city||'—']||0)+1; });
+      const cityChips = sortMode==='city' ? '' : Object.entries(cityCounts).map(([c,n])=>`<span class="tag dim">${c} · ${n}</span>`).join('');
+      return `<div class="date-group">
+        <div class="date-group-header">
+          <h2>${headerFn(k)}</h2>
+          <div class="date-group-meta"><span>${items.length} operation${items.length>1?'s':''}</span>${cityChips}</div>
+        </div>
+        <div class="grid">${items.map(renderOperationCard).join('')}</div>
+      </div>`;
+    }).join('');
+
+    return statsHtml + groupsHtml;
+  }
+
+  function renderVenues(){
+    let list = venues.filter(v=>{
+      if(activeCity!=='All' && v.city!==activeCity) return false;
+      if(searchTerm && !(`${v.name} ${v.contact}`.toLowerCase().includes(searchTerm))) return false;
+      return true;
+    }).sort((a,b)=> a.name.localeCompare(b.name));
+
+    if(list.length===0){
+      return `<div class="empty"><h3>No venues yet</h3><p>Add a venue${activeCity!=='All'?' in '+activeCity:''}, or import your spreadsheet.</p></div>`;
+    }
+    return list.map(v=>{
+      const linkedTours = tours.filter(t=> (t.visits||[]).some(vv=>vv.venueId===v.id));
+      return `<div class="card">
+        <div class="card-top">
+          <div>
+            <h3>${v.name}</h3>
+            <div class="meta">
+              <span class="tag">${v.city||'—'}</span>
+              ${v.category?`<span>${v.category}</span>`:''}
+              ${v.contact?`<span>📇 ${v.contact}</span>`:''}
+              ${v.phone?`<span>📞 ${v.phone}</span>`:''}
+              ${v.capacity?`<span>👥 up to ${v.capacity}</span>`:''}
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn ghost small admin-only" data-edit-venue="${v.id}">Edit</button>
+            <button class="btn danger small admin-only" data-del-venue="${v.id}">Delete</button>
+          </div>
+        </div>
+        ${v.notes?`<div class="hint" style="margin-top:8px;">${v.notes}</div>`:''}
+        <div class="hint" style="margin-top:10px;">
+          ${linkedTours.length? `Used by ${linkedTours.length} tour${linkedTours.length>1?'s':''}: ${linkedTours.map(t=>t.name||'Untitled').join(', ')}` : 'Not linked to any tour yet.'}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function render(){
+    if(!loaded){ el('content').innerHTML = '<div class="loading">Loading shared data…</div>'; return; }
+    document.body.classList.toggle('view-only', !isAdmin());
+    renderCityChips();
+    renderLineChips();
+    document.querySelectorAll('.tab').forEach(t=> t.classList.toggle('active', t.dataset.tab===activeTab));
+    el('searchInput').placeholder = activeTab==='tours' ? 'Search tours, ships, codes…' : 'Search venues or contacts…';
+    el('addBtn').textContent = activeTab==='tours' ? '+ New tour' : '+ New venue';
+    el('sortSelect').style.display = activeTab==='tours' ? '' : 'none';
+    el('content').innerHTML = activeTab==='tours' ? renderTours() : renderVenues();
+    bindCardEvents();
+  }
+
+  function bindCardEvents(){
+    document.querySelectorAll('[data-toggle-op]').forEach(h=> h.onclick = ()=>{
+      const key = h.dataset.toggleOp;
+      if(expandedOps.has(key)) expandedOps.delete(key); else expandedOps.add(key);
+      render();
+    });
+    document.querySelectorAll('[data-edit-tour]').forEach(b=> b.onclick=(e)=>{ e.stopPropagation(); openTourModal(b.dataset.editTour); });
+    document.querySelectorAll('[data-del-tour]').forEach(b=> b.onclick=(e)=>{
+      e.stopPropagation();
+      if(confirm('Delete this tour?')){ tours = tours.filter(t=>t.id!==b.dataset.delTour); syncNow(); render(); }
+    });
+    document.querySelectorAll('[data-edit-venue]').forEach(b=> b.onclick=()=>openVenueModal(b.dataset.editVenue));
+    document.querySelectorAll('[data-del-venue]').forEach(b=> b.onclick=()=>{
+      if(confirm('Delete this venue? It will be removed from any tour visits.')){
+        const id=b.dataset.delVenue;
+        venues = venues.filter(v=>v.id!==id);
+        tours = tours.map(t=>({...t, visits:(t.visits||[]).filter(vv=>vv.venueId!==id)}));
+        syncNow(); render();
+      }
+    });
+    document.querySelectorAll('[data-goto-venue]').forEach(c=> c.onclick=(e)=>{
+      e.stopPropagation();
+      activeTab='venues'; searchTerm=''; el('searchInput').value='';
+      render();
+      setTimeout(()=> openVenueModal(c.dataset.gotoVenue), 50);
+    });
+  }
+
+  function closeModal(){ el('modalRoot').innerHTML=''; modalVisits=[]; }
+
+  function applyReadOnlyGuard(){
+    if(isAdmin()) return;
+    const root = el('modalRoot');
+    root.querySelectorAll('input,select,textarea').forEach(elm=> elm.disabled = true);
+    const saveBtn = root.querySelector('#saveBtn');
+    if(saveBtn) saveBtn.style.display = 'none';
+    const addVisitBtn = root.querySelector('#addVisitBtn');
+    if(addVisitBtn) addVisitBtn.style.display = 'none';
+    root.querySelectorAll('.v-remove').forEach(b=> b.style.display='none');
+  }
+
+  // ---------- Visits editor (used inside tour modal) ----------
+  function drawVisitsEditor(city){
+    const box = el('visitsEditor');
+    if(!box) return;
+    const cityVenues = venues.filter(v=>v.city===city);
+    const optionsHtml = cityVenues.map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
+    box.innerHTML = (modalVisits.length ? modalVisits.map((visit,idx)=>`
+      <div class="visit-row" data-idx="${idx}">
+        <select class="v-venue">${cityVenues.length? optionsHtml : '<option value="">No venues in this city</option>'}</select>
+        <input class="v-time" placeholder="Time"/>
+        <input class="v-activity" placeholder="Activity"/>
+        <input class="v-pax" type="number" placeholder="Max pax"/>
+        <button type="button" class="btn danger small v-remove">×</button>
+      </div>
+      <div class="visit-notes"><input class="v-notes" placeholder="Notes for this visit (optional)"/></div>
+    `).join('') : '<span class="hint">No venues linked yet.</span>') +
+      `<button type="button" class="btn ghost small" id="addVisitBtn" style="margin-top:4px;">+ Add venue visit</button>`;
+    // populate values (avoids HTML-escaping issues with inline value attrs)
+    modalVisits.forEach((visit,idx)=>{
+      const row = box.querySelector(`.visit-row[data-idx="${idx}"]`);
+      if(!row) return;
+      row.querySelector('.v-venue').value = visit.venueId||'';
+      row.querySelector('.v-time').value = visit.time||'';
+      row.querySelector('.v-activity').value = visit.activity||'';
+      row.querySelector('.v-pax').value = visit.maxPax||'';
+      const notesInput = row.nextElementSibling.querySelector('.v-notes');
+      if(notesInput) notesInput.value = visit.notes||'';
+    });
+    bindVisitEvents(city);
+    applyReadOnlyGuard();
+  }
+  function bindVisitEvents(city){
+    const box = el('visitsEditor');
+    box.querySelectorAll('.visit-row').forEach(row=>{
+      const idx = parseInt(row.dataset.idx);
+      row.querySelector('.v-venue').onchange = e=> modalVisits[idx].venueId = e.target.value;
+      row.querySelector('.v-time').oninput = e=> modalVisits[idx].time = e.target.value;
+      row.querySelector('.v-activity').oninput = e=> modalVisits[idx].activity = e.target.value;
+      row.querySelector('.v-pax').oninput = e=> modalVisits[idx].maxPax = parseInt(e.target.value)||0;
+      const notesInput = row.nextElementSibling.querySelector('.v-notes');
+      if(notesInput) notesInput.oninput = e=> modalVisits[idx].notes = e.target.value;
+      row.querySelector('.v-remove').onclick = ()=>{ modalVisits.splice(idx,1); drawVisitsEditor(el('f-city').value); };
+    });
+    const addBtn = el('addVisitBtn');
+    if(addBtn) addBtn.onclick = ()=>{
+      const cityVenues = venues.filter(v=>v.city===city);
+      modalVisits.push({ venueId: cityVenues[0]?cityVenues[0].id:'', time:'', activity:'', maxPax:0, notes:'' });
+      drawVisitsEditor(city);
+    };
+  }
+
+  function openTourModal(id){
+    const editing = tours.find(t=>t.id===id);
+    modalVisits = editing ? JSON.parse(JSON.stringify(editing.visits||[])) : [];
+    const cityOptions = cities.map(c=>`<option value="${c}" ${editing&&editing.city===c?'selected':''}>${c}</option>`).join('');
+    el('modalRoot').innerHTML = `<div class="overlay" id="ov">
+      <div class="modal">
+        <h2>${editing?'Edit tour':'New tour'}</h2>
+        <div class="field-row">
+          <div class="field"><label>Tour name</label><input id="f-name" value="${editing?editing.name||'':''}" placeholder="e.g. Medina & Souks Half-Day"/></div>
+          <div class="field"><label>Ship name</label><input id="f-ship" value="${editing?editing.ship||'':''}" placeholder="e.g. Aurora"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Cruise line</label><input id="f-line" value="${editing?editing.line||'':''}" placeholder="e.g. Carnival UK"/></div>
+          <div class="field"><label>City</label><select id="f-city">${cityOptions}</select></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Date</label><input type="text" id="f-date" placeholder="dd/mm/yyyy" value="${editing? isoToDMY(editing.date) : ''}"/></div>
+          <div class="field"><label>Pax count</label><input type="number" id="f-pax" value="${editing?editing.pax||'':''}" placeholder="0"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Timing</label><input id="f-timing" value="${editing?editing.timing||'':''}" placeholder="e.g. 09:00–13:00"/></div>
+        </div>
+        <div class="field">
+          <label>Venues visited</label>
+          <div class="visits-box" id="visitsEditor"></div>
+        </div>
+        <div class="field"><label>Notes</label><textarea id="f-notes" rows="2">${editing?editing.notes||'':''}</textarea></div>
+        <div class="modal-actions">
+          <button class="btn ghost" id="cancelBtn">Cancel</button>
+          <button class="btn" id="saveBtn">${editing?'Save changes':'Add tour'}</button>
+        </div>
+      </div>
+    </div>`;
+    drawVisitsEditor(el('f-city').value);
+    el('f-city').onchange = ()=> drawVisitsEditor(el('f-city').value);
+    el('cancelBtn').onclick = closeModal;
+    el('ov').onclick = (e)=>{ if(e.target.id==='ov') closeModal(); };
+    applyReadOnlyGuard();
+    el('saveBtn').onclick = ()=>{
+      const dmyVal = el('f-date').value.trim();
+      const isoDate = dmyVal ? dmyToISO(dmyVal) : '';
+      if(dmyVal && !isoDate){ alert('Please enter the date as dd/mm/yyyy, e.g. 23/10/2026.'); return; }
+      const data = {
+        id: editing?editing.id:uid(),
+        code: editing?editing.code||'':'',
+        name: el('f-name').value.trim(),
+        ship: el('f-ship').value.trim(),
+        line: el('f-line').value.trim(),
+        city: el('f-city').value,
+        date: isoDate,
+        pax: parseInt(el('f-pax').value)||0,
+        timing: el('f-timing').value.trim(),
+        notes: el('f-notes').value.trim(),
+        visits: modalVisits.filter(v=>v.venueId),
+        createdAt: editing?editing.createdAt:Date.now()
+      };
+      if(editing){ tours = tours.map(t=>t.id===editing.id?data:t); }
+      else{ tours.push(data); }
+      syncNow(); closeModal(); render();
+    };
+  }
+
+  function openVenueModal(id){
+    const editing = venues.find(v=>v.id===id);
+    const cityOptions = cities.map(c=>`<option value="${c}" ${editing&&editing.city===c?'selected':''}>${c}</option>`).join('');
+    el('modalRoot').innerHTML = `<div class="overlay" id="ov">
+      <div class="modal">
+        <h2>${editing?'Edit venue':'New venue'}</h2>
+        <div class="field-row">
+          <div class="field"><label>Venue name</label><input id="f-name" value="${editing?editing.name||'':''}" placeholder="e.g. Riad Ferdaous"/></div>
+          <div class="field"><label>City</label><select id="f-city">${cityOptions}</select></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Category</label><input id="f-category" value="${editing?editing.category||'':''}" placeholder="e.g. Restaurant, Kasbah, Garden"/></div>
+          <div class="field"><label>Capacity</label><input type="number" id="f-capacity" value="${editing?editing.capacity||'':''}" placeholder="0"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Contact person</label><input id="f-contact" value="${editing?editing.contact||'':''}"/></div>
+          <div class="field"><label>Phone</label><input id="f-phone" value="${editing?editing.phone||'':''}"/></div>
+        </div>
+        <div class="field"><label>Notes</label><textarea id="f-notes" rows="2">${editing?editing.notes||'':''}</textarea></div>
+        <div class="modal-actions">
+          <button class="btn ghost" id="cancelBtn">Cancel</button>
+          <button class="btn" id="saveBtn">${editing?'Save changes':'Add venue'}</button>
+        </div>
+      </div>
+    </div>`;
+    el('cancelBtn').onclick = closeModal;
+    el('ov').onclick = (e)=>{ if(e.target.id==='ov') closeModal(); };
+    applyReadOnlyGuard();
+    el('saveBtn').onclick = ()=>{
+      const data = {
+        id: editing?editing.id:uid(),
+        name: el('f-name').value.trim(),
+        city: el('f-city').value,
+        category: el('f-category').value.trim(),
+        capacity: parseInt(el('f-capacity').value)||0,
+        contact: el('f-contact').value.trim(),
+        phone: el('f-phone').value.trim(),
+        notes: el('f-notes').value.trim(),
+        createdAt: editing?editing.createdAt:Date.now()
+      };
+      if(!data.name){ alert('Venue name is required.'); return; }
+      if(editing){ venues = venues.map(v=>v.id===editing.id?data:v); }
+      else{ venues.push(data); }
+      syncNow(); closeModal(); render();
+    };
+  }
+
+  // ---------- Import from Excel (reads the "Cruise Ops Master Reservations" format) ----------
+  // Cell may come through as an Excel serial number (preferred, timezone-proof) or occasionally a JS Date.
+  function cellToISODate(val){
+    if(typeof val === 'number' && val > 20000 && val < 80000){
+      const d = XLSX.SSF.parse_date_code(val);
+      if(d) return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+    }
+    if(val instanceof Date && !isNaN(val.getTime())){
+      const y = val.getUTCFullYear(), m = String(val.getUTCMonth()+1).padStart(2,'0'), d = String(val.getUTCDate()).padStart(2,'0');
+      return `${y}-${m}-${d}`;
+    }
+    return '';
+  }
+  function cellToTimeText(val){
+    if(typeof val === 'number' && val >= 0 && val < 1){
+      const d = XLSX.SSF.parse_date_code(val);
+      if(d) return `${String(d.H).padStart(2,'0')}:${String(d.M).padStart(2,'0')}`;
+      const totalMin = Math.round(val*24*60);
+      return `${String(Math.floor(totalMin/60)).padStart(2,'0')}:${String(totalMin%60).padStart(2,'0')}`;
+    }
+    if(val instanceof Date && !isNaN(val.getTime())){
+      const h = String(val.getUTCHours()).padStart(2,'0'), m = String(val.getUTCMinutes()).padStart(2,'0');
+      return `${h}:${m}`;
+    }
+    return val ? String(val).trim() : '';
+  }
+  function cellToText(val){
+    if(val===null || val===undefined) return '';
+    if(val instanceof Date) return '';
+    return String(val).trim();
+  }
+
+  function parseWorkbook(wb){
+    let addedCities=0, addedVenues=0, addedTours=0, skippedTours=0;
+    const tourKey = t => (t.code||'')+'|'+t.date+'|'+t.name+'|'+(t.timing||'');
+    const existingTourKeys = new Set(tours.map(tourKey));
+
+    // Find the "Operations" sheet (by name if present, else the first sheet with matching headers).
+    let sheetName = wb.SheetNames.find(n => n.trim().toLowerCase()==='operations');
+    if(!sheetName){
+      sheetName = wb.SheetNames.find(n=>{
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[n], {header:1, raw:true, defval:'', range:0});
+        const header = (rows[0]||[]).map(c=>String(c||'').trim().toLowerCase());
+        return header.includes('date') && header.includes('venue') && header.includes('tour code');
+      });
+    }
+    if(!sheetName){
+      return { addedCities, addedVenues, addedTours, skippedTours, error: 'no_operations_sheet' };
+    }
+
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {header:1, raw:true, defval:''});
+    const header = (rows[0]||[]).map(c=>String(c||'').trim().toLowerCase());
+    const col = name => header.indexOf(name);
+    const C = {
+      date: col('date'), city: col('city'), ship: col('ship'), line: col('cruise line'),
+      code: col('tour code'), name: col('tour name'), timing: col('tour start time'),
+      venue: col('venue'), time: col('visit time'), activity: col('activity type'),
+      pax: col('max pax'), notes: col('notes')
+    };
+
+    const tourMap = new Map(); // key -> tour object (this import batch only)
+
+    for(let i=1;i<rows.length;i++){
+      const r = rows[i] || [];
+      if(r.every(c=> c==='' || c===undefined)) continue;
+
+      const date = cellToISODate(r[C.date]) || cellToText(r[C.date]);
+      const city = cellToText(r[C.city]) || 'Unknown';
+      const ship = cellToText(r[C.ship]);
+      const line = cellToText(r[C.line]);
+      const code = cellToText(r[C.code]).replace(/\.0$/,'');
+      const name = cellToText(r[C.name]);
+      const timing = cellToText(r[C.timing]) || cellToTimeText(r[C.timing]);
+      const venueName = cellToText(r[C.venue]);
+      const visitTime = cellToText(r[C.time]) || cellToTimeText(r[C.time]);
+      const activity = cellToText(r[C.activity]);
+      const maxPax = parseInt(cellToText(r[C.pax]))||0;
+      const notes = cellToText(r[C.notes]);
+
+      if(!date || !venueName) continue;
+      if(city!=='Unknown' && !cities.includes(city)){ cities.push(city); addedCities++; }
+
+      const key = code+'|'+date+'|'+name+'|'+timing;
+      let tour = tourMap.get(key);
+      if(!tour){
+        tour = { id: uid(), code, name, ship, line, city, date, pax:0, timing, notes:'', visits:[], createdAt: Date.now() };
+        tourMap.set(key, tour);
+      }
+
+      const vkey = city.toLowerCase()+'|'+venueName.toLowerCase();
+      let venue = venues.find(v=> (v.city.toLowerCase()+'|'+v.name.toLowerCase())===vkey);
+      if(!venue){
+        venue = { id: uid(), name: venueName, city, category: activity||'', contact:'', phone:'', capacity: maxPax, notes:'', createdAt: Date.now() };
+        venues.push(venue);
+        addedVenues++;
+      }
+      tour.visits.push({ id: uid(), venueId: venue.id, time: visitTime, activity, maxPax, notes });
+      if(maxPax > tour.pax) tour.pax = maxPax;
+    }
+
+    tourMap.forEach(tour=>{
+      if(!tour.visits.length) return;
+      const key = tourKey(tour);
+      if(existingTourKeys.has(key)){ skippedTours++; }
+      else { tours.push(tour); existingTourKeys.add(key); addedTours++; }
+    });
+
+    return { addedCities, addedVenues, addedTours, skippedTours };
+  }
+
+  // ---------- Import Ship Names (matches Tour Code + date to assign vessel names) ----------
+  const MONTH_ABBR = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+  function anyCellToISODate(val){
+    if(typeof val === 'number' && val > 20000 && val < 80000){
+      const d = XLSX.SSF.parse_date_code(val);
+      if(d) return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+    }
+    if(val instanceof Date && !isNaN(val.getTime())){
+      return `${val.getUTCFullYear()}-${String(val.getUTCMonth()+1).padStart(2,'0')}-${String(val.getUTCDate()).padStart(2,'0')}`;
+    }
+    const s = String(val||'').trim();
+    let m = s.match(/^(\d{1,2})[-\/]([A-Za-z]{3,})[-\/](\d{4})/);
+    if(m){
+      const mon = MONTH_ABBR[m[2].slice(0,3).toLowerCase()];
+      if(mon) return `${m[3]}-${String(mon).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
+    }
+    m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if(m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+    m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if(m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+    return '';
+  }
+  function titleCaseShip(s){
+    return s.toLowerCase().replace(/\b\w/g, c=>c.toUpperCase());
+  }
+  function buildShipNameMap(wb){
+    const map = new Map();
+    let sheetsParsed = 0;
+    wb.SheetNames.forEach(sheetName=>{
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:''});
+      let headerIdx=-1, codeCol=-1, shipCol=-1, dateCol=-1;
+      for(let i=0;i<Math.min(6,rows.length);i++){
+        const norm = (rows[i]||[]).map(c=> String(c||'').toLowerCase().replace(/[\s\n]+/g,''));
+        const cCol = norm.indexOf('tourcode');
+        const sCol = norm.indexOf('shipname');
+        if(cCol!==-1 && sCol!==-1){
+          headerIdx = i; codeCol = cCol; shipCol = sCol;
+          dateCol = norm.indexOf('shiparrivaldatetime');
+          if(dateCol===-1) dateCol = norm.indexOf('shorexdate');
+          break;
+        }
+      }
+      if(headerIdx===-1 || dateCol===-1) return;
+      sheetsParsed++;
+      for(let i=headerIdx+1;i<rows.length;i++){
+        const r = rows[i]||[];
+        const code = String(r[codeCol]||'').trim().replace(/\.0$/,'');
+        const shipRaw = String(r[shipCol]||'').trim();
+        const dateISO = anyCellToISODate(r[dateCol]);
+        if(!code || !shipRaw || !dateISO) continue;
+        map.set(code+'|'+dateISO, titleCaseShip(shipRaw));
+      }
+    });
+    return { map, sheetsParsed };
+  }
+
+  function showShipImportSummary(stats, fileName, tier){
+    el('modalRoot').innerHTML = `<div class="overlay" id="ov">
+      <div class="modal" style="max-width:440px;">
+        <h2>Ship names ${tier==='synced'?'applied':'applied (sync issue)'}</h2>
+        <div class="import-summary">
+          File: <b>${fileName}</b><br/>
+          Sheets recognized: <b>${stats.sheetsParsed}</b><br/>
+          Tours matched &amp; updated: <b>${stats.matched}</b><br/>
+          Tours with no match: <b>${stats.unmatched}</b><br/>
+          Distinct ships assigned: <b>${stats.ships}</b>
+        </div>
+        <p class="hint" style="margin-top:12px;">Matching is by tour code + date. Unmatched tours keep showing the cruise line name until a future ship-name file covers them.</p>
+        <div class="modal-actions"><button class="btn" id="closeSummary">Done</button></div>
+      </div>
+    </div>`;
+    el('closeSummary').onclick = closeModal;
+    el('ov').onclick = (e)=>{ if(e.target.id==='ov') closeModal(); };
+  }
+
+  function showImportSummary(result, fileName){
+    el('modalRoot').innerHTML = `<div class="overlay" id="ov">
+      <div class="modal" style="max-width:440px;">
+        <h2>Import complete</h2>
+        <div class="import-summary">
+          File: <b>${fileName}</b><br/>
+          Cities added: <b>${result.addedCities}</b><br/>
+          Venues added: <b>${result.addedVenues}</b><br/>
+          Tours added: <b>${result.addedTours}</b><br/>
+          Tours skipped (already existed): <b>${result.skippedTours}</b>
+        </div>
+        <p class="hint" style="margin-top:12px;">Skipped tours were matched by tour code + date, so re-importing the same file won't create duplicates.</p>
+        <div class="modal-actions"><button class="btn" id="closeSummary">Done</button></div>
+      </div>
+    </div>`;
+    el('closeSummary').onclick = closeModal;
+    el('ov').onclick = (e)=>{ if(e.target.id==='ov') closeModal(); };
+  }
+
+  function downloadBackup(){
+    const payload = { cities, venues, tours, exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cruise-ops-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function showSaveFailure(fileName, tier){
+    const title = tier==='failed' ? 'Sync failed' : 'Saved locally only';
+    const body = tier==='failed'
+      ? `Your file was read correctly and is held in this tab's memory, but it couldn't be sent to your Google Sheet after several retries, and the on-device backup also failed. <b>Download a backup below immediately so nothing is lost.</b>`
+      : `Your data is safe on this device, but couldn't reach your Google Sheet after several retries — your teammates won't see it yet. Try "Retry syncing" below, or download a backup as an extra safety copy.`;
+    el('modalRoot').innerHTML = `<div class="overlay" id="ov">
+      <div class="modal" style="max-width:460px;">
+        <h2>${title}</h2>
+        <div class="import-summary">${body}</div>
+        <div class="modal-actions">
+          <button class="btn ghost" id="downloadBtn">⬇ Download backup</button>
+          <button class="btn ghost" id="dismissFail">Close</button>
+          <button class="btn" id="retrySaveBtn">Retry syncing</button>
+        </div>
+      </div>
+    </div>`;
+    el('downloadBtn').onclick = downloadBackup;
+    el('dismissFail').onclick = closeModal;
+    el('ov').onclick = (e)=>{ if(e.target.id==='ov') closeModal(); };
+    el('retrySaveBtn').onclick = async ()=>{
+      el('retrySaveBtn').textContent = 'Retrying…';
+      el('retrySaveBtn').disabled = true;
+      const newTier = await pushAll();
+      syncTier = newTier;
+      updateStatusUI();
+      if(newTier==='synced'){ closeModal(); render(); }
+      else { showSaveFailure(fileName, newTier); }
+    };
+  }
+
+  el('importBtn').onclick = ()=> el('importFile').click();
+  el('importShipsBtn').onclick = ()=> el('shipNamesFile').click();
+  el('shipNamesFile').onchange = async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    if(!getBackendUrl()){ openBackendSettings(true); e.target.value=''; return; }
+    try{
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, {type:'array'});
+      const { map, sheetsParsed } = buildShipNameMap(wb);
+      if(sheetsParsed===0){
+        alert("Could not find columns matching Tour Code / Ship Name / a date column in this file. Make sure it is the sailing/ship-assignment report.");
+        e.target.value=''; return;
+      }
+      let matched=0, unmatched=0;
+      const shipsAssigned = new Set();
+      tours.forEach(t=>{
+        const key = (t.code||'')+'|'+t.date;
+        if(map.has(key)){
+          t.ship = map.get(key);
+          shipsAssigned.add(t.ship);
+          matched++;
+        } else {
+          unmatched++;
+        }
+      });
+      el('status').innerHTML = '<span class="dot"></span> syncing…';
+      const tier = await syncNow();
+      render();
+      showShipImportSummary({matched, unmatched, ships: shipsAssigned.size, sheetsParsed}, file.name, tier);
+    }catch(err){
+      console.error(err);
+      alert('Could not read that file. Make sure it is a valid .xlsx export.');
+    }
+    e.target.value = '';
+  };
+  el('downloadBackupBtn').onclick = downloadBackup;
+  el('backendBtn').onclick = ()=> openBackendSettings(false);
+  el('clearAllBtn').onclick = async ()=>{
+    if(!confirm('This will permanently delete ALL cities, venues and tours from your shared Google Sheet, for everyone on the team. This cannot be undone. Continue?')) return;
+    if(!confirm('Really sure? Consider clicking "Download backup" first if you have not already. Type OK on the next prompt to confirm.')) return;
+    const check = prompt('Type CLEAR to confirm wiping all data:');
+    if(check !== 'CLEAR'){ alert('Cancelled — nothing was deleted.'); return; }
+    cities = DEFAULT_CITIES.slice();
+    venues = [];
+    tours = [];
+    el('status').innerHTML = '<span class="dot"></span> clearing…';
+    const tier = await syncNow();
+    render();
+    alert(tier==='synced' ? 'All data cleared. You can now re-import your spreadsheet fresh.' : 'Cleared locally, but syncing the cleared state failed — try again or check the Backend connection.');
+  };
+
+  el('dedupeBtn').onclick = async ()=>{
+    const seen = new Set();
+    const deduped = tours.filter(t=>{
+      const key = (t.code||'')+'|'+t.date+'|'+t.name+'|'+(t.timing||'');
+      if(seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    const removed = tours.length - deduped.length;
+    if(removed===0){ alert('No duplicates found — nothing to remove.'); return; }
+    if(!confirm(`Found ${removed} duplicate tour(s) (same code, date, name and time). Remove them and sync?`)) return;
+    tours = deduped;
+    el('status').innerHTML = '<span class="dot"></span> syncing…';
+    const tier = await syncNow();
+    render();
+    alert(tier==='synced' ? `Removed ${removed} duplicate(s) and synced.` : `Removed ${removed} duplicate(s) locally, but syncing failed — try Retry via the Backend or Download backup as a safety copy.`);
+  };
+  el('importFile').onchange = async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    if(!getBackendUrl()){ openBackendSettings(true); e.target.value=''; return; }
+    el('status').innerHTML = '<span class="dot"></span> reading file…';
+    try{
+      let result;
+      if(file.name.toLowerCase().endsWith('.json')){
+        const text = await file.text();
+        const data = JSON.parse(text);
+        result = mergeBackup(data);
+      } else {
+        const buf = await file.arrayBuffer();
+        const wb = XLSX.read(buf, {type:'array'});
+        result = parseWorkbook(wb);
+      }
+      if(result && result.error==='no_operations_sheet'){
+        el('status').innerHTML = '<span class="dot" style="background:#C1594A"></span> import failed';
+        alert('Could not find an "Operations" sheet with Date / Tour Code / Venue columns in this file. Import expects the Cruise Ops Master Reservations format.');
+        e.target.value=''; return;
+      }
+      el('status').innerHTML = '<span class="dot"></span> syncing to your sheet…';
+      const tier = await pushAll();
+      syncTier = tier;
+      updateStatusUI();
+      render();
+      if(tier==='synced'){
+        showImportSummary(result, file.name);
+      } else {
+        showSaveFailure(file.name, tier);
+      }
+    }catch(err){
+      console.error(err);
+      el('status').innerHTML = '<span class="dot" style="background:#C1594A"></span> import failed';
+      alert('Could not read that file. Make sure it is a valid .xlsx export (or a .json backup from this tool).');
+    }
+    e.target.value = '';
+  };
+
+  function mergeBackup(data){
+    let addedCities=0, addedVenues=0, addedTours=0, skippedTours=0;
+    (data.cities||[]).forEach(c=>{ if(!cities.includes(c)){ cities.push(c); addedCities++; } });
+    (data.venues||[]).forEach(v=>{
+      if(!venues.some(existing=>existing.id===v.id)){ venues.push(v); addedVenues++; }
+    });
+    (data.tours||[]).forEach(t=>{
+      if(!tours.some(existing=>existing.id===t.id)){ tours.push(t); addedTours++; }
+      else skippedTours++;
+    });
+    return { addedCities, addedVenues, addedTours, skippedTours };
+  }
+
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.onclick = ()=>{ activeTab = t.dataset.tab; searchTerm=''; el('searchInput').value=''; render(); };
+  });
+  el('searchInput').oninput = (e)=>{ searchTerm = e.target.value.toLowerCase(); render(); };
+  el('sortSelect').onchange = (e)=>{ sortMode = e.target.value; render(); };
+  el('addBtn').onclick = ()=>{ activeTab==='tours' ? openTourModal(null) : openVenueModal(null); };
+
+  loadAll();
+})();
+</script>
